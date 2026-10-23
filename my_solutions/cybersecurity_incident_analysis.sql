@@ -416,7 +416,7 @@ org_percentages AS (
         high_critical_incidents,
         ROUND(
             100.0*high_critical_incidents/ NUllIf(total_incidents,0)
-        ) AS high_critical_percentage
+        ,2) AS high_critical_percentage
     FROM org_incidents
 )
 SELECT
@@ -468,3 +468,48 @@ select *, Rank() over(order by high_critical_incidents desc) from ost
 --Findings: Organizations with the Highest Number of High and Critical Incidents
 -- ORG079 recorded the highest number of High and Critical incidents, with 6 out of 12 total incidents. Six organizations—ORG087, ORG090, ORG107, ORG078, ORG018, and ORG058—followed with 5 High and Critical incidents each.
 -- Conclusion: ORG079 had the highest count of serious incidents in this dataset. However, incident counts alone do not establish overall organizational risk. Severity proportions and additional contextual indicators should also be considered.
+
+
+-- Further investigation on the basis of persentages 
+WITH org_incidents AS (
+    SELECT
+        og.org_id,
+        COUNT(se.incident_id) AS total_incidents,
+        COUNT(
+            CASE
+                WHEN se.severity IN ('Critical', 'High')
+                THEN se.incident_id
+            END
+        ) AS high_critical_incidents
+    FROM organization AS og
+    LEFT JOIN security_incidents AS se
+        ON og.org_id = se.org_id
+    GROUP BY og.org_id
+),
+org_percentages AS (
+    SELECT
+        org_id,
+        total_incidents,
+        high_critical_incidents,
+        ROUND(
+            100.0*high_critical_incidents/ NUllIf(total_incidents,0)
+        ,2) AS high_critical_percentage
+    FROM org_incidents
+)
+SELECT
+    *,
+    RANK() OVER (
+        ORDER BY high_critical_percentage DESC NULLS LAST
+    ) AS ranking
+FROM org_percentages
+ORDER BY ranking, org_id;
+
+-- Finding — Percentage of High and Critical Incidents by Organization
+
+-- - Seventeen organizations recorded a High/Critical incident percentage of 100%. This means that all incidents recorded for these organizations were classified as High or Critical, although each organization had only 1–5 total incidents.
+-- - ORG079 recorded 6 High/Critical incidents out of 12 total incidents, representing 50.00%. ORG107 recorded 5 High/Critical incidents out of 8 total incidents, representing 62.50%.
+-- - ORG107 had a higher proportion of serious incidents, while ORG079 had a higher total count of serious incidents.
+
+-- Business Implication: These organizations can be prioritized for further investigation based on their serious-incident counts and percentages. Reviewing incident details and existing security controls may help identify areas for improvement.
+
+-- Limitation: A high High/Critical incident percentage does not independently establish an organization's overall risk or predict future attacks. Total incident counts and other relevant security indicators should also be considered.
