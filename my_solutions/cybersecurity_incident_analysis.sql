@@ -1,3 +1,4 @@
+-- SQLBook: Code
 -- Project: Cybersecurity Incident Analysis
 -- Question 1: Incident Severity Distribution
 -- How many security incidents are recorded at each severity level?
@@ -228,3 +229,230 @@ ORDER BY Failed_login_rate_pct DESC,Failed_logins DESC;
 
 -- Business implication: Prioritize accounts based on both failed login rate and the total number of failed attempts. A 100% failure rate alone does not establish malicious activity.
 
+
+-- Question main 13: How many network events are recorded at each severity level, and which severity level is the most common?
+-- Objective: To understand the distribution of network events by severity and identify the most frequently recorded severity level.
+
+select severity, count(event_id) as total_recorded_events 
+from network_events 
+group by severity
+order by total_recorded_events desc 
+
+-- Finding: High and Critical severity events tied for the highest count, with 1,278 events each.
+-- Together, they accounted for 51.12% of all 5,000 recorded network events.
+
+-- Questions basics 1: How many organizations are in the dataset?
+-- Objective: 
+select count(org_id) as total_no_of_organizations from organization 
+
+-- Findings there are total 120 oraganization we have in this dataset 
+
+-- Question basics 2: Which industries appear most frequently?
+
+select industry,count(*) as total_appear 
+from organization 
+group by industry
+order by total_appear desc
+
+-- Finding: Finance and Healthcare are tied for the highest number of organizations, with 33 each. Tech has the fewest, with 22.
+
+-- Question basics 3: Which operating systems are most common?
+--Objective: To identify the most frequently used operating systems in the dataset by counting the number of records associated with each operating system and ranking them from highest to lowest.
+
+select os_type, count(*) as mostly_used_os from systems 
+group by os_type
+order by mostly_used_os desc 
+
+-- Finding: Windows is the most common operating system in the systems table, with 213 records, followed by Mac (203) and Linux (184). 
+
+-- Investigation Questions
+
+-- Question 1: Which users have the most failed login attempts?
+-- Objective: To identify users with the highest number of failed login attempts by grouping login records by user and counting failed attempts, helping flag users who may warrant further security investigation.
+
+select user_id, count(*) as login_attempts
+from login_logs 
+where status = 'Failed'
+group by user_id
+order by login_attempts desc
+
+-- Finding: U1281, U1340, U0940 aur U0367 top par tied hain, with 8 failed attempts each.
+
+-- Question 2: Which systems generate the most security events?
+--Objective: To determine which systems record the highest number of security events by counting events for each system and ranking the systems from highest to lowest.
+
+select system_id, count(*) as security_events from network_events 
+group by system_id
+order by security_events desc 
+
+-- Finding: Four systems tie for the highest number of recorded security events, with 17 each.
+
+-- Question 3: Which organizations have the most incidents?
+-- Objective: To identify the organizations associated with the highest number of recorded security incidents by counting incidents for each organization and ranking them from highest to lowest. 
+
+select org_id, count(*) as total_security_incidents 
+from security_incidents 
+group by org_id 
+order by total_security_incidents desc 
+
+--Finding: ORG079 has the highest number of recorded security incidents (12), followed by ORG082 (11) and ORG110 (10).
+
+-- Question 4: Which systems are involved in the most incidents?
+--Objective: To identify the systems associated with the highest number of recorded security incidents by counting incidents for each system and ranking them from highest to lowest. 
+
+select system_id, count(distinct incident_id) as total_incidents 
+from incident_systems 
+group by system_id 
+order by total_incidents desc 
+
+-- Findings: six systems are tied for the highest count, with four incidents associated with each system. 
+
+-- Question 5: Which users have the highest number of successful login attempts?
+--Objective: To identify users with the most successful logins by counting successful login records for each user and ranking them from highest to lowest. 
+
+select user_id, count(*) as total_successful_attempts 
+from  login_logs 
+where status = 'Success'
+group by user_id 
+order by total_successful_attempts desc
+
+-- Finding: The analysis shows that U0892 and U0510 have the highest number of successful login attempts, with 8 attempts each. They are followed by eight users with 7 successful login attempts, while the remaining users recorded 6, 5, and 4 successful attempts, as reflected in the output.
+
+-- Question 6: Which systems generate the highest number of critical security alerts?
+-- Objective: To identify the systems with the most critical-severity network events by filtering for critical events, counting them per system, and ranking the systems from highest to lowest.
+
+with total_sys as
+(
+select system_id, count(*) as total_critical_alerts 
+from network_events 
+where severity = 'Critical' 
+group by system_id 
+) 
+select *, rank() over(order by total_critical_alerts desc) as alert_rank 
+from total_sys 
+order by alert_rank,system_id 
+
+--Findings: The analysis indicates that S0238 and S0523 recorded the highest number of critical alerts, with 8 alerts each, making them jointly ranked first. 
+--They are followed by S0107, S0186, and S0452, each with 7 critical alerts, placing them at rank 3. The absence of rank 2 is expected, as the RANK() function assigns the same rank to tied values and skips subsequent ranks accordingly. 
+
+-- Question 7: Which industries have the highest number of security incidents?
+--Objective: To compare the total number of recorded security incidents across industries and rank industries from highest to lowest. 
+select *, rank() over( order by total_security_incicdents desc) as ranking from (
+select og.industry,count(se.incident_id) as total_security_incicdents 
+from organization as og 
+left join security_incidents as se
+on og.org_id = se.org_id 
+group by og.industry 
+) as ost 
+
+--Finding: The Retail sector reported the highest number of incidents (147), followed by Finance (133) and Healthcare (127), while the Tech sector recorded the lowest count (93). This indicates that incident activity is concentrated primarily within the Retail, Finance, and Healthcare sectors. 
+
+-- Question 8: Which countries have the highest number of security incidents?
+-- Objective: To compare recorded security incident counts across countries and rank them from highest to lowest.
+
+select *, ranK() over(order by total_security_incidents desc) as Ranking 
+from
+(
+select og.country, count(se.incident_id) as total_security_incidents 
+from organization as og 
+left join security_incidents as se  
+on og.org_id = se.org_id
+group by og.country) as ost 
+
+-- Finding: The USA recorded the highest number of security incidents (154) 
+
+-- Question 9: Which organizations have the highest number of High and Critical security incidents combined?
+-- Objective: To identify the organizations with the greatest number of high-severity incidents by filtering for High and Critical, counting incidents per organization, and ranking the results from highest to lowest. 
+
+select *, rank() over(order by no_of_high_critical_incidents  desc) as Ranking from 
+(
+select og.org_id, count(CASE
+                WHEN se.severity IN ('Critical', 'High')
+                THEN se.incident_id
+            END) as no_of_high_critical_incidents 
+from organization as og
+left join security_incidents as se  
+on og.org_id = se.org_id
+group by og.org_id 
+) as ost 
+
+
+-- Findings: Organizations with the Highest Number of High and Critical Security Incidents
+
+-- ORG079 recorded the highest number of High and Critical security incidents, with 6 incidents.
+
+-- Six organizations — ORG087, ORG090, ORG107, ORG078, ORG018, and ORG058 — tied for second place, with 5 incidents each.
+
+-- 13 out of 120 organizations (10.83%) had zero High or Critical incidents.
+
+-- The remaining 107 organizations (89.17%) had at least one High or Critical incident.
+
+-- Conclusion: ORG079 had the highest recorded count of High and Critical security incidents. However, incident counts alone do not establish an organization's overall risk level. A complete risk assessment would also consider total incidents, incident rates, organizational size, and other relevant security indicators.
+
+
+
+-- Question: Which organizations have the highest percentage of High and Critical incidents out of their total incidents?
+-- Objective: To identify organizations where High and Critical incidents make up the largest proportion of all recorded incidents, by calculating the percentage per organization and ranking the results from highest to lowest.
+
+WITH org_incidents AS (
+    SELECT
+        og.org_id,
+        COUNT(se.incident_id) AS total_incidents,
+        COUNT(
+            CASE
+                WHEN se.severity IN ('Critical', 'High')
+                THEN se.incident_id
+            END
+        ) AS high_critical_incidents
+    FROM organization AS og
+    LEFT JOIN security_incidents AS se
+        ON og.org_id = se.org_id
+    GROUP BY og.org_id
+),
+org_percentages AS (
+    SELECT
+        org_id,
+        total_incidents,
+        high_critical_incidents,
+        ROUND(
+            100.0*high_critical_incidents/ NUllIf(total_incidents,0)
+        ) AS high_critical_percentage
+    FROM org_incidents
+)
+SELECT
+    *,
+    RANK() OVER (
+        ORDER BY high_critical_percentage DESC NULLS LAST
+    ) AS ranking
+FROM org_percentages
+ORDER BY ranking, org_id;                          
+
+
+-- Findings: Percentage of High and Critical Incidents by Organization
+
+-- - Seventeen organizations had a High/Critical incident percentage of 100%, meaning all their recorded incidents were classified as High or Critical.
+-- - ORG079 recorded 12 total incidents, of which 6 were High or Critical, giving it a High/Critical incident percentage of 50%.
+-- - ORG078 recorded a percentage of 55.56% (5 out of 9 incidents), while ORG107 recorded 62.50% (5 out of 8 incidents).
+-- - ORG082 recorded 3 High/Critical incidents out of 11 total incidents, representing 27.27%.
+
+-- Conclusion: Ranking by percentage highlights organizations where a greater proportion of incidents are High or Critical. However, percentages should be considered alongside total incident counts because an organization with one incident can have a 100% rate, while an organization with many more incidents may have a lower percentage.
+
+-- Question: How does the number of security incidents change month by month?
+-- Objective: Calculate the monthly incident frequency using the incident date, so we can identify which months recorded the highest and lowest numbers of incidents. 
+
+select EXTRACT(MONTH from discovered_date) as Months ,count(*) as total_incidents from security_incidents
+group by EXTRACT(MONTH from discovered_date) 
+order by Months asc
+
+--Findings a
+-- Monthly Security Incident Frequency
+
+-- - January recorded the highest number of security incidents, with 65 incidents.
+-- - December recorded the lowest number, with 28 incidents.
+-- - The dataset contains 500 recorded security incidents across the 12 months.
+
+-- These results describe the distribution of recorded incidents by month; they do not, by themselves, establish the cause of monthly differences or prove changes in security risk.
+
+-- Question: Identify organizations with the highest risk.
+
+-- Objective: Analyze incident severity and incident counts to identify organizations that may warrant further security investigation.
