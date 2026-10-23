@@ -456,3 +456,15 @@ order by Months asc
 -- Question: Identify organizations with the highest risk.
 
 -- Objective: Analyze incident severity and incident counts to identify organizations that may warrant further security investigation.
+
+with ost as (select og.org_id,count(se.incident_id) as total_incidents, count(case when se.severity in ('Critical','High') then se.incident_id end) as high_critical_incidents
+from organization as og 
+left join security_incidents as se 
+on og.org_id = se.org_id 
+group by og.org_id ) 
+
+select *, Rank() over(order by high_critical_incidents desc) from ost
+
+--Findings: Organizations with the Highest Number of High and Critical Incidents
+-- ORG079 recorded the highest number of High and Critical incidents, with 6 out of 12 total incidents. Six organizations—ORG087, ORG090, ORG107, ORG078, ORG018, and ORG058—followed with 5 High and Critical incidents each.
+-- Conclusion: ORG079 had the highest count of serious incidents in this dataset. However, incident counts alone do not establish overall organizational risk. Severity proportions and additional contextual indicators should also be considered.
