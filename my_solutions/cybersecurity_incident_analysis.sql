@@ -1,5 +1,19 @@
 -- SQLBook: Code
 -- Project: Cybersecurity Incident Analysis
+--
+-- PROJECT CONTENTS / NAVIGATION
+-- 1. Initial incident analysis and additional login/network analyses
+-- 2. Analytical basics: organization count, industry distribution, operating systems
+-- 3. Investigation practice questions
+-- 4. Additional organization-level analyses: High/Critical counts, percentages, monthly frequency
+-- 5. Advanced Investigation: suspicious IP login patterns and abnormal login frequency
+--
+-- NOTE ON OVERLAPPING ANALYSES
+-- Some questions intentionally revisit the same metric as practice (for example, failed-login leaders,
+-- industry/country incident counts, and organization High/Critical incidents). Keep the separate versions
+-- where they answer a distinct learning objective; the duplicate percentage-only query has been consolidated.
+-- Findings describe this dataset and should not be treated as proof of malicious activity or overall risk.
+
 -- Question 1: Incident Severity Distribution
 -- How many security incidents are recorded at each severity level?
 -- Objective: Understand the distribution of incidents by severity.
@@ -322,6 +336,7 @@ order by total_successful_attempts desc;
 
 -- Finding: The analysis shows that U0892 and U0510 have the highest number of successful login attempts, with 8 attempts each. They are followed by eight users with 7 successful login attempts, while the remaining users recorded 6, 5, and 4 successful attempts, as reflected in the output.
 
+
 -- Question 6: Which systems generate the highest number of critical security alerts?
 -- Objective: To identify the systems with the most critical-severity network events by filtering for critical events, counting them per system, and ranking the systems from highest to lowest.
 
@@ -474,49 +489,12 @@ select *, Rank() over(order by high_critical_incidents desc) from ost;
 -- Conclusion: ORG079 had the highest count of serious incidents in this dataset. However, incident counts alone do not establish overall organizational risk. Severity proportions and additional contextual indicators should also be considered.
 
 
--- Further investigation on the basis of persentages 
-WITH org_incidents AS (
-    SELECT
-        og.org_id,
-        COUNT(se.incident_id) AS total_incidents,
-        COUNT(
-            CASE
-                WHEN se.severity IN ('Critical', 'High')
-                THEN se.incident_id
-            END
-        ) AS high_critical_incidents
-    FROM organization AS og
-    LEFT JOIN security_incidents AS se
-        ON og.org_id = se.org_id
-    GROUP BY og.org_id
-),
-org_percentages AS (
-    SELECT
-        org_id,
-        total_incidents,
-        high_critical_incidents,
-        ROUND(
-            100.0*high_critical_incidents/ NUllIf(total_incidents,0)
-        ,2) AS high_critical_percentage
-    FROM org_incidents
-)
-SELECT
-    *,
-    RANK() OVER (
-        ORDER BY high_critical_percentage DESC NULLS LAST
-    ) AS ranking
-FROM org_percentages
-ORDER BY ranking, org_id;
-
--- Finding — Percentage of High and Critical Incidents by Organization
-
--- - Seventeen organizations recorded a High/Critical incident percentage of 100%. This means that all incidents recorded for these organizations were classified as High or Critical, although each organization had only 1–5 total incidents.
--- - ORG079 recorded 6 High/Critical incidents out of 12 total incidents, representing 50.00%. ORG107 recorded 5 High/Critical incidents out of 8 total incidents, representing 62.50%.
--- - ORG107 had a higher proportion of serious incidents, while ORG079 had a higher total count of serious incidents.
-
--- Business Implication: These organizations can be prioritized for further investigation based on their serious-incident counts and percentages. Reviewing incident details and existing security controls may help identify areas for improvement.
-
--- Limitation: A high High/Critical incident percentage does not independently establish an organization's overall risk or predict future attacks. Total incident counts and other relevant security indicators should also be considered.
+-- Consolidated organization-risk conclusion (percentage analysis is already covered above).
+-- Count-based result: ORG079 recorded the highest number of High/Critical incidents: 6 out of 12 total incidents (50.00%).
+-- Six organizations—ORG087, ORG090, ORG107, ORG078, ORG018, and ORG058—recorded 5 High/Critical incidents each.
+-- Percentage-based result: 17 organizations recorded a 100% High/Critical incident percentage, but each had only 1–5 total incidents.
+-- ORG107 recorded 5 High/Critical incidents out of 8 total incidents (62.50%), a higher proportion than ORG079 despite having fewer serious incidents.
+-- Conclusion: Count and percentage measure different aspects of the observed data. ORG079 had the highest serious-incident count, while some organizations had a higher serious-incident proportion. These metrics alone do not establish overall organizational risk; incident context, organizational size, and other security indicators should also be assessed.
 
 
 --Advanced Investigation — Detect Suspicious Login Patterns by IP Address
@@ -575,4 +553,29 @@ ORDER BY ip_address, login_time, user_id;
 
 -- Business Implication: The reviewed patterns do not provide sufficient evidence to classify these IP addresses as suspicious. Failed attempts may result from normal user errors, and multiple users may legitimately share an IP address. Further investigation using additional security logs would be needed to assess whether malicious activity occurred.
 
--- Limitation: The dataset records dates but not exact timestamps, preventing analysis of the precise timing of login attempts within a day. The available records alone cannot confirm a cyberattack.
+-- Limitation: The dataset records dates but not exact timestamps, preventing analysis of the precise timing of login attempts within a day. The available records alone cannot confirm a cyberattack. 
+
+
+-- Advanced Investigation — Question 2: Identify users with abnormal login frequency.
+-- Objective: To identify users with unusually high login-attempt frequency by analyzing the total number of login attempts per user and comparing failed and successful attempts to highlight accounts that may require further investigation.
+
+SELECT
+    user_id,
+    COUNT(*) AS total_attempts,
+    COUNT(*) FILTER (WHERE status = 'Failed') AS failed_attempts,
+    COUNT(*) FILTER (WHERE status = 'Success') AS success_attempts,
+    ROUND(
+        COUNT(*) FILTER (WHERE status = 'Failed') * 100.0
+        / COUNT(*),
+        2
+    ) AS failure_rate
+FROM login_logs
+GROUP BY user_id
+ORDER BY total_attempts DESC, failed_attempts DESC;
+
+
+--Advanced Investigation Q2 Findings — Identify Users with Abnormal Login Frequency
+
+--Finding: U0061 and U1447 recorded the highest login frequency, with 12 attempts each, including 7 failed attempts (58.33%). U0279 had the highest failure rate at 100%, with all 7 login attempts failing. U0367 recorded 8 failed attempts out of 9, resulting in an 88.89% failure rate. U1281, U1340, and U0940 also recorded 8 failed attempts each.
+--Business implication:  These results identify users with frequent login attempts and accounts with a high proportion of failed logins that may warrant further investigation. However, high login frequency or failure rate alone does not confirm malicious activity.
+--Limitation: The `login_time` column contains dates but not exact timestamps. Therefore, this analysis cannot determine whether repeated attempts occurred within unusually short periods. Additional timestamp-level logs, IP address analysis, and historical user activity would help determine whether the observed patterns are abnormal.
