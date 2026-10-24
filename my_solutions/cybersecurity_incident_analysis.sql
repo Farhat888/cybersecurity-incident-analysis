@@ -14,6 +14,11 @@
 -- where they answer a distinct learning objective; the duplicate percentage-only query has been consolidated.
 -- Findings describe this dataset and should not be treated as proof of malicious activity or overall risk.
 
+-- =====================================================
+-- SECTION 1: INITIAL INCIDENT ANALYSIS
+-- =====================================================
+
+
 -- Question 1: Incident Severity Distribution
 -- How many security incidents are recorded at each severity level?
 -- Objective: Understand the distribution of incidents by severity.
@@ -77,6 +82,10 @@ where incident_type = 'Malware' and severity in('Critical','High');
 -- Business Implication: More than half of recorded malware incidents are High or Critical, suggesting malware handling should include clear escalation and response procedures.
 -- Recommendation: Prioritize review of High/Critical malware cases and check whether containment and recovery procedures are documented and tested.
 -- Limitation: This percentage is based on recorded malware incidents and does not establish actual impact or prove malware is the highest-risk threat overall.
+
+-- =====================================================================
+-- SECTION 2: Additional Login and Network Analysis (13 questions)
+-- =====================================================================
 
 -- Question main 1: Which industries have recorded the highest number of security incidents? 
 -- Objective: Identify which industries have the highest recorded incident counts by combining incident records with organization information.
@@ -173,7 +182,6 @@ group by user_id
 having count(case when status = 'Failed' then 1 end) >= 5 and count(case when status = 'Success' then 1 end)  >= 1;
 
 -- Finding: A total of 73 user accounts recorded at least five failed login attempts and at least one successful login during the recorded period.
--- The analysis identifies user accounts that recorded at least five failed login attempts and at least one successful login during the recorded period.
 -- Business Implication: These accounts may warrant further investigation to determine whether the repeated failures followed by successful logins reflect legitimate user activity or potentially suspicious behaviour.
 -- Limitation: Repeated failed login attempts followed by a successful login do not, by themselves, prove that an account has been compromised. Login timestamps, IP addresses, and other activity should be reviewed before drawing conclusions.
 -- Recommendation: Review the 73 accounts using timestamp-level and IP-level evidence, and escalate only cases supported by additional indicators.
@@ -255,11 +263,11 @@ limit 10;
 -- Finding — Successful Login Activity by User
 
 -- Users U0892 and U0510 recorded the highest number of successful login attempts, with 8 successful logins each. 
---Several other users recorded 7 successful logins each.
+-- Several other users recorded 7 successful logins each.
 
 -- Business implication: These users had the highest successful login counts in the dataset.
 -- However, a high number of successful logins does not automatically indicate suspicious activity; 
---login frequency should be assessed alongside failed attempts, timestamps, and normal user behaviour.
+-- login frequency should be assessed alongside failed attempts, timestamps, and normal user behaviour.
 -- Recommendation: Compare these users' activity with their usual login patterns and review associated dates, failed attempts, and IP addresses before escalating.
 -- Limitation: A high successful-login count alone does not establish suspicious activity, and this summary does not provide enough context to determine whether the frequency is unusual.
 
@@ -299,6 +307,12 @@ order by total_recorded_events desc;
 -- Recommendation: Review event types, affected systems, and linked incident records to determine which events require response.
 -- Limitation: Network events are not necessarily unique security incidents, and event counts alone do not establish impact or confirm an attack.
 
+-- =====================================================
+-- SECTION 3: Analytical Basics (3 questions)
+-- =====================================================
+
+
+
 -- Questions basics 1: How many organizations are in the dataset?
 -- Objective: To determine the total number of organizations represented in the dataset by counting the organization records in the organization table.
 select count(org_id) as total_no_of_organizations from organization;
@@ -309,7 +323,7 @@ select count(org_id) as total_no_of_organizations from organization;
 -- Limitation: The dataset's 120 organizations may not represent all organizations in a real-world industry or geography.
 
 -- Question basics 2: Which industries appear most frequently?
---Objective: To identify the industries with the highest number of organizations by counting organization records for each industry and ranking them from highest to lowest.
+-- Objective: To identify the industries with the highest number of organizations by counting organization records for each industry and ranking them from highest to lowest.
 
 select industry,count(*) as total_appear 
 from organization 
@@ -333,7 +347,12 @@ order by mostly_used_os desc;
 -- Recommendation: Review operating-system patching and endpoint protection across all platforms, prioritizing according to exposure and actual findings.
 -- Limitation: Record counts do not show vulnerability levels, asset criticality, patch status, or whether one operating system is less secure.
 
--- Investigation Questions
+
+-- ========================================================
+-- SECTION 1: Investigation Questions (12 questions)
+-- ========================================================
+
+
 
 -- Question 1: Which users have the most failed login attempts?
 -- Objective: To identify users with the highest number of failed login attempts by grouping login records by user and counting failed attempts, helping flag users who may warrant further security investigation.
@@ -369,13 +388,13 @@ from security_incidents
 group by org_id 
 order by total_security_incidents desc;
 
---Finding: ORG079 has the highest number of recorded security incidents (12), followed by ORG082 (11) and ORG110 (10).
+-- Finding: ORG079 has the highest number of recorded security incidents (12), followed by ORG082 (11) and ORG110 (10).
 -- Business Implication: ORG079, ORG082, and ORG110 have the highest incident counts in this dataset and can be prioritized for contextual review.
 -- Recommendation: Compare severity, total systems, and organization context before determining follow-up actions.
 -- Limitation: Raw incident counts alone do not establish overall organizational risk or explain why counts differ.
 
 -- Question 4: Which systems are involved in the most incidents?
---Objective: To identify the systems associated with the highest number of recorded security incidents by counting incidents for each system and ranking them from highest to lowest. 
+-- Objective: To identify the systems associated with the highest number of recorded security incidents by counting incidents for each system and ranking them from highest to lowest. 
 
 select system_id, count(distinct incident_id) as total_incidents 
 from incident_systems 
@@ -388,7 +407,7 @@ order by total_incidents desc;
 -- Limitation: The number of linked incidents does not measure impact, and a tie in counts does not imply equal risk.
 
 -- Question 5: Which users have the highest number of successful login attempts?
---Objective: To identify users with the most successful logins by counting successful login records for each user and ranking them from highest to lowest. 
+-- Objective: To identify users with the most successful logins by counting successful login records for each user and ranking them from highest to lowest. 
 
 select user_id, count(*) as total_successful_attempts 
 from  login_logs 
@@ -416,14 +435,14 @@ select *, rank() over(order by total_critical_alerts desc) as alert_rank
 from total_sys 
 order by alert_rank,system_id;
 
---Findings: The analysis indicates that S0238 and S0523 recorded the highest number of critical alerts, with 8 alerts each, making them jointly ranked first. 
---They are followed by S0107, S0186, and S0452, each with 7 critical alerts, placing them at rank 3. The absence of rank 2 is expected, as the RANK() function assigns the same rank to tied values and skips subsequent ranks accordingly. 
+-- Findings: The analysis indicates that S0238 and S0523 recorded the highest number of critical alerts, with 8 alerts each, making them jointly ranked first. 
+-- They are followed by S0107, S0186, and S0452, each with 7 critical alerts, placing them at rank 3. The absence of rank 2 is expected, as the RANK() function assigns the same rank to tied values and skips subsequent ranks accordingly. 
 -- Business Implication: S0238 and S0523 have the highest recorded critical-alert counts and should be reviewed to understand the events behind those alerts.
 -- Recommendation: Inspect alert details, linked incidents, and system context before prioritizing remediation.
 -- Limitation: Alert counts alone do not confirm successful attacks or quantify their impact.
 
 -- Question 7: Which industries have the highest number of security incidents?
---Objective: To compare the total number of recorded security incidents across industries and rank industries from highest to lowest. 
+-- Objective: To compare the total number of recorded security incidents across industries and rank industries from highest to lowest. 
 select *, rank() over( order by total_security_incidents desc) as ranking from (
 select og.industry,count(se.incident_id) as total_security_incidents
 from organization as og 
@@ -432,7 +451,7 @@ on og.org_id = se.org_id
 group by og.industry 
 ) as ost;
 
---Finding: The Retail sector reported the highest number of incidents (147), followed by Finance (133) and Healthcare (127), while the Tech sector recorded the lowest count (93). This indicates that incident activity is concentrated primarily within the Retail, Finance, and Healthcare sectors. 
+-- Finding: The Retail sector reported the highest number of incidents (147), followed by Finance (133) and Healthcare (127), while the Tech sector recorded the lowest count (93). This indicates that incident activity is concentrated primarily within the Retail, Finance, and Healthcare sectors. 
 -- Business Implication: Retail has the highest raw count, but industry representation may affect the comparison.
 -- Recommendation: Compare severity and incident rates relative to the number of organizations before proposing industry-specific actions.
 -- Limitation: These counts do not account for industry size, reporting differences, or number of systems.
@@ -471,13 +490,9 @@ group by og.org_id
 
 
 -- Findings: Organizations with the Highest Number of High and Critical Security Incidents
-
 -- ORG079 recorded the highest number of High and Critical security incidents, with 6 incidents.
-
 -- Six organizations — ORG087, ORG090, ORG107, ORG078, ORG018, and ORG058 — tied for second place, with 5 incidents each.
-
 -- 13 out of 120 organizations (10.83%) had zero High or Critical incidents.
-
 -- The remaining 107 organizations (89.17%) had at least one High or Critical incident.
 
 -- Conclusion: ORG079 had the highest recorded count of High and Critical security incidents. However, incident counts alone do not establish an organization's overall risk level. A complete risk assessment would also consider total incidents, incident rates, organizational size, and other relevant security indicators.
@@ -487,7 +502,7 @@ group by og.org_id
 
 
 
--- Question: Which organizations have the highest percentage of High and Critical incidents out of their total incidents?
+-- Question 10: Which organizations have the highest percentage of High and Critical incidents out of their total incidents?
 -- Objective: To identify organizations where High and Critical incidents make up the largest proportion of all recorded incidents, by calculating the percentage per organization and ranking the results from highest to lowest.
 
 WITH org_incidents AS (
@@ -526,7 +541,7 @@ ORDER BY ranking, org_id;
 
 -- Findings: Percentage of High and Critical Incidents by Organization
 
--- - Seventeen organizations had a High/Critical incident percentage of 100%, meaning all their recorded incidents were classified as High or Critical.
+-- -Seventeen organizations had a High/Critical incident percentage of 100%, meaning all their recorded incidents were classified as High or Critical.
 -- - ORG079 recorded 12 total incidents, of which 6 were High or Critical, giving it a High/Critical incident percentage of 50%.
 -- - ORG078 recorded a percentage of 55.56% (5 out of 9 incidents), while ORG107 recorded 62.50% (5 out of 8 incidents).
 -- - ORG082 recorded 3 High/Critical incidents out of 11 total incidents, representing 27.27%.
@@ -536,15 +551,14 @@ ORDER BY ranking, org_id;
 -- Recommendation: Review each organization's percentage together with its total incident count and severity details before prioritizing action.
 -- Limitation: Small denominators can produce 100% percentages from only a few incidents; percentages alone do not establish overall risk.
 
--- Question: How does the number of security incidents change month by month?
+-- Question 11: How does the number of security incidents change month by month?
 -- Objective: Calculate the monthly incident frequency using the incident date, so we can identify which months recorded the highest and lowest numbers of incidents. 
 
 select EXTRACT(MONTH from discovered_date) as Months ,count(*) as total_incidents from security_incidents
 group by EXTRACT(MONTH from discovered_date) 
 order by Months asc;
 
---Findings a
--- Monthly Security Incident Frequency
+--Findings a Monthly Security Incident Frequency
 
 -- - January recorded the highest number of security incidents, with 65 incidents.
 -- - December recorded the lowest number, with 28 incidents.
@@ -555,7 +569,7 @@ order by Months asc;
 -- Recommendation: Review incident types, severity, and reporting patterns in high-count months to identify potential explanations.
 -- Limitation: Monthly totals alone cannot establish a cause, seasonality, or a change in underlying security risk.
 
--- Question: Identify organizations with the highest risk.
+-- Question 12: Identify organizations with the highest risk.
 
 -- Objective: Analyze incident severity and incident counts to identify organizations that may warrant further security investigation.
 
@@ -567,7 +581,7 @@ group by og.org_id )
 
 select *, Rank() over(order by high_critical_incidents desc) from ost;
 
---Findings: Organizations with the Highest Number of High and Critical Incidents
+-- Findings: Organizations with the Highest Number of High and Critical Incidents
 -- ORG079 recorded the highest number of High and Critical incidents, with 6 out of 12 total incidents. Six organizations—ORG087, ORG090, ORG107, ORG078, ORG018, and ORG058—followed with 5 High and Critical incidents each.
 -- Conclusion: ORG079 had the highest count of serious incidents in this dataset. However, incident counts alone do not establish overall organizational risk. Severity proportions and additional contextual indicators should also be considered.
 
@@ -580,9 +594,13 @@ select *, Rank() over(order by high_critical_incidents desc) from ost;
 -- Conclusion: Count and percentage measure different aspects of the observed data. ORG079 had the highest serious-incident count, while some organizations had a higher serious-incident proportion. These metrics alone do not establish overall organizational risk; incident context, organizational size, and other security indicators should also be assessed.
 
 
+-- =====================================================
+-- SECTION 1: Advanced Investigation (2 questions)
+-- =====================================================
+
 --Advanced Investigation — Detect Suspicious Login Patterns by IP Address
 
--- Business Question:
+-- Question 1:
 -- Which IP addresses show potentially suspicious login patterns based on repeated failed login attempts and successful login activity?
 
 -- Objective:  
@@ -635,7 +653,7 @@ ORDER BY ip_address, login_time, user_id;
 -- The query identified IP addresses associated with both failed and successful login attempts. In the reviewed records, three IP addresses—192.168.5.78, 192.168.44.57, and 192.168.79.86—each had two failed attempts and one successful attempt involving three different users. These attempts occurred across several months.
 
 -- Business Implication: The reviewed patterns do not provide sufficient evidence to classify these IP addresses as suspicious. Failed attempts may result from normal user errors, and multiple users may legitimately share an IP address. Further investigation using additional security logs would be needed to assess whether malicious activity occurred.
-
+-- Recommendation: Review the login records for the identified IP addresses alongside user context, login dates, and other available security logs before deciding whether further action is necessary.
 -- Limitation: The dataset records dates but not exact timestamps, preventing analysis of the precise timing of login attempts within a day. The available records alone cannot confirm a cyberattack. 
 
 
@@ -661,4 +679,5 @@ ORDER BY total_attempts DESC, failed_attempts DESC;
 
 --Finding: U0061 and U1447 recorded the highest login frequency, with 12 attempts each, including 7 failed attempts (58.33%). U0279 had the highest failure rate at 100%, with all 7 login attempts failing. U0367 recorded 8 failed attempts out of 9, resulting in an 88.89% failure rate. U1281, U1340, and U0940 also recorded 8 failed attempts each.
 --Business implication:  These results identify users with frequent login attempts and accounts with a high proportion of failed logins that may warrant further investigation. However, high login frequency or failure rate alone does not confirm malicious activity.
+-- Recommendation: Review accounts with high attempt counts or failure rates alongside IP addresses, login dates, and historical user activity. Prioritize follow-up based on multiple supporting indicators rather than login frequency alone.
 --Limitation: The `login_time` column contains dates but not exact timestamps. Therefore, this analysis cannot determine whether repeated attempts occurred within unusually short periods. Additional timestamp-level logs, IP address analysis, and historical user activity would help determine whether the observed patterns are abnormal.
