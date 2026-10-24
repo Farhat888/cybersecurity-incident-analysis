@@ -294,7 +294,7 @@ where status = 'Failed'
 group by user_id
 order by login_attempts desc;
 
--- Finding: U1281, U1340, U0940 aur U0367 top par tied hain, with 8 failed attempts each.
+-- Finding: U1281, U1340, U0940 and U0367 are top tied , with 8 failed attempts each.
 
 -- Question 2: Which systems generate the most security events?
 --Objective: To determine which systems record the highest number of security events by counting events for each system and ranking the systems from highest to lowest.
