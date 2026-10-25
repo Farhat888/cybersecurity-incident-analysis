@@ -55,7 +55,7 @@ The data was imported into PostgreSQL for analysis.
 10. Systems generating the highest numbers of network events
 11. Organizations with the highest numbers of security incidents
 12. Systems involved in the highest numbers of incidents
-13. Systems generating the most Critical alerts
+13. Systems generating the most Critical network events
 14. Industries with the highest numbers of security incidents
 15. Monthly security incident frequency
 16. Organizations ranked by High/Critical incident counts
