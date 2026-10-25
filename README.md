@@ -14,7 +14,7 @@ The analysis covers incident severity and types, industry and country distributi
 - Analyze successful and failed login attempts.
 - Identify users with high numbers of failed login attempts and unusual login patterns.
 - Investigate IP addresses associated with repeated failed and successful logins.
-- Identify systems generating the highest numbers of network events and critical alerts.
+- Identify systems generating the highest numbers of Critical network events.
 - Analyze the involvement of systems in recorded security incidents.
 - Examine monthly incident frequency.
 - Compare organizations by total incidents and High/Critical incident counts.
