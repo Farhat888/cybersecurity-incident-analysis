@@ -2,11 +2,11 @@
 -- Project: Cybersecurity Incident Analysis
 --
 -- PROJECT CONTENTS / NAVIGATION
--- 1. Initial incident analysis 
--- 2. Additional login/network analyses
--- 3. Analytical basics: organization count, industry distribution, operating systems
+-- 1. Initial Incident Analysis
+-- 2. Additional Login and Network Analysis
+-- 3. Analytical Basics: Organizations, Industries, and Operating Systems
 -- 4. Investigation Questions
--- 5. Advanced Investigation: suspicious IP login patterns and abnormal login frequency
+-- 5. Advanced Investigation: Suspicious IP Patterns and Login Frequency
 --
 -- NOTE ON OVERLAPPING ANALYSES
 -- Some questions intentionally revisit the same metric as practice (for example, failed-login leaders,
@@ -437,11 +437,15 @@ select *,
 from total_sys
 order by alert_rank,
     system_id;
--- Findings: The analysis indicates that S0238 and S0523 recorded the highest number of critical alerts, with 8 alerts each, making them jointly ranked first. 
--- They are followed by S0107, S0186, and S0452, each with 7 critical alerts, placing them at rank 3. The absence of rank 2 is expected, as the RANK() function assigns the same rank to tied values and skips subsequent ranks accordingly. 
--- Business Implication: S0238 and S0523 have the highest recorded critical-alert counts and should be reviewed to understand the events behind those alerts.
--- Recommendation: Inspect alert details, linked incidents, and system context before prioritizing remediation.
--- Limitation: Alert counts alone do not confirm successful attacks or quantify their impact.
+-- Findings: The analysis indicates that S0238 and S0523 recorded the highest number
+-- of Critical network events, with 8 events each, making them jointly ranked first.
+-- They are followed by S0107, S0186, and S0452, each with 7 Critical network events,
+-- placing them at rank 3. The absence of rank 2 is expected, as the RANK() function
+-- assigns the same rank to tied values and skips subsequent ranks accordingly.
+-- Business Implication: S0238 and S0523 have the highest recorded counts of Critical network events
+-- and should be reviewed to understand the events associated with these systems.
+-- Recommendation: Inspect event details, linked incidents, and system context before prioritizing remediation.
+-- Limitation: Critical network-event counts alone do not confirm successful attacks or quantify their impact.
 -- Question 7: Which industries have the highest number of security incidents?
 -- Objective: To compare the total number of recorded security incidents across industries and rank industries from highest to lowest. 
 select *,

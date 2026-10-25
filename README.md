@@ -82,7 +82,7 @@ The data was imported into PostgreSQL for analysis.
 - **ORG079** also recorded the highest total incident count, with **12 incidents**.
 - January recorded the highest monthly incident count, with **65 incidents**.
 - December recorded the lowest monthly incident count, with **28 incidents**.
-- **S0238 and S0523** had the highest numbers of Critical network alerts, with **8 alerts each**.
+- **S0238 and S0523** had the highest numbers of Critical network events, with **8 events each**.
 
 ### Login Analysis
 
