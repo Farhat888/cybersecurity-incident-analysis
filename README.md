@@ -133,3 +133,29 @@ This project demonstrates the use of SQL for data aggregation, filtering, joins,
 The analysis helps identify incident patterns, examine login behavior, compare security indicators across organizations and systems, and highlight areas that may warrant further investigation.
 
 The findings describe patterns in the available dataset and do not, by themselves, confirm malicious activity or establish an organization's overall security risk.
+
+## Power BI Dashboard
+
+An interactive Power BI dashboard was developed to analyze cybersecurity incidents, login activity, organizational risk indicators, and network and system events.
+
+### Dashboard Preview
+
+#### 1. Security Incident Overview
+![Security Incident Overview](01_Incident_Overview.png)
+
+#### 2. Login Analysis
+![Login Analysis](02_Login_Analysis.png)
+
+#### 3. Organization Risk Analysis
+![Organization Risk Analysis](03_Organization_Risk.png)
+
+#### 4. Network and System Analysis
+![Network and System Analysis](04_Network_System_Analysis.png)
+
+#### 5. Advanced Login Analysis
+![Advanced Login Analysis](05_Advanced_Login_Analysis.png)
+
+### Tools Used
+- Power BI
+- PostgreSQL
+- SQL
