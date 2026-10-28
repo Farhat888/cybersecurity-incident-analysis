@@ -160,4 +160,4 @@ An interactive Power BI dashboard was developed to analyze cybersecurity inciden
 - PostgreSQL
 - SQL
 
-Note: The dashboard screenshots provide a visual overview of the analysis. The Power BI .pbix file can be included in the repository to allow users with Power BI Desktop to explore the report.
+**Note:** The dashboard screenshots provide a visual overview of the analysis. The Power BI `.pbix` file is available in this repository for users who want to explore the report using Power BI Desktop.
