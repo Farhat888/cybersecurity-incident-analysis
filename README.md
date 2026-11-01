@@ -6,6 +6,26 @@ This project analyzes cybersecurity incident data using SQL to identify incident
 
 The analysis covers incident severity and types, industry and country distributions, login behavior, network events, system involvement in incidents, monthly incident frequency, and organization-level security indicators.
 
+## Author & Ownership
+
+This project was independently developed by **Farhat Ansari**.
+
+The analytical questions, SQL queries, data analysis, findings, and project documentation were independently created as part of this portfolio project.
+
+**Copyright © 2026 Farhat Ansari. All rights reserved.**
+
+No permission is granted to reproduce, redistribute, or republish the original project work without prior written permission, except where permitted by applicable law.
+
+## Dataset Attribution
+
+The datasets used in this project were obtained from Kaggle and are stored in the `csv_files/` folder.
+
+**Original Dataset Source:** [SQL Practice Dataset 3 – Hard Queries](https://www.kaggle.com/datasets/nudratabbas/sql-practice-dataset-3-hard-queries/data)
+
+The dataset is not claimed as original work. Credit and applicable usage terms belong to the original dataset creator.
+
+**Dataset Creator:** Nudrat Abbas
+
 ## Objectives
 
 - Analyze the distribution of cybersecurity incidents by severity and type.
